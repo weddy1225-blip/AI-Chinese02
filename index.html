@@ -6,17 +6,27 @@
   <style>
     :root { --bg: #0d0d0d; --text: #d1d1d1; --accent: #ff3e3e; --card-bg: #1a1a1a; }
     body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
-    .card { background: var(--card-bg); padding: 30px; border-radius: 12px; width: 95%; max-width: 1000px; border: 1px solid #333; }
-    h1 { color: var(--accent); text-align: center; border-bottom: 1px solid #444; padding-bottom: 15px; }
+    .card { background: var(--card-bg); padding: 30px; border-radius: 12px; width: 95%; max-width: 1000px; border: 1px solid #333; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
+    h1 { color: var(--accent); letter-spacing: 4px; text-align: center; border-bottom: 1px solid #444; padding-bottom: 15px; }
+    
+    /* 生存手則樣式 */
     .rules-panel { background: #000; padding: 20px; border: 1px solid var(--accent); border-radius: 8px; margin-bottom: 25px; }
-    .game-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    .drop-zone { background: rgba(255,255,255,0.02); border: 2px dashed #444; border-radius: 10px; min-height: 400px; padding: 15px; }
-    .drag-item { background: #2a2a2a; border: 1px solid #444; padding: 15px; margin-bottom: 10px; cursor: grab; border-radius: 6px; }
-    .dragging { opacity: 0.3; }
-    input, button { width: 100%; padding: 12px; margin: 5px 0; border-radius: 6px; border: 1px solid #444; background: #111; color: #fff; box-sizing: border-box; }
-    button { background: var(--accent); cursor: pointer; font-weight: bold; }
+    .rules-title { color: var(--accent); font-weight: bold; margin-bottom: 10px; font-size: 18px; }
+    .rules-list { color: #aaa; font-size: 16px; line-height: 1.6; }
+
+    .game-container { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+    .zone-header { font-size: 16px; margin-bottom: 10px; color: #888; text-align: center; font-weight: bold; }
+    .drop-zone { background: rgba(255,255,255,0.02); border: 2px dashed #444; border-radius: 10px; min-height: 500px; padding: 20px; }
+    #anomaly-zone { border-color: var(--accent); background: rgba(255, 77, 77, 0.03); }
+    
+    .drag-item { background: #2a2a2a; border: 1px solid #444; border-radius: 6px; padding: 20px; margin-bottom: 15px; font-size: 18px; cursor: grab; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); line-height: 1.4; }
+    .dragging { opacity: 0.1; }
+    
+    input, button { width: 100%; padding: 14px; margin: 8px 0; background: #111; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+    button { background: var(--accent); border: none; font-weight: bold; cursor: pointer; font-size: 18px; margin-top: 15px; }
+    .btn-info { background: #3498db; }
     .hidden { display: none; }
-    .answer-box { background: #222; padding: 15px; border-left: 4px solid #3498db; margin-top: 15px; }
+    .answer-box { text-align:left; margin-top:15px; padding:15px; background:#222; border-left:4px solid #3498db; color: #fff; line-height: 1.8; }
   </style>
 </head>
 <body>
@@ -24,79 +34,100 @@
 <div class="card">
   <h1>🛡️ 異常觀測修復中心</h1>
 
-  <div id="step-1">
-    <p>輸入三個地標：</p>
-    <input type="text" id="l1" placeholder="地標 1">
-    <input type="text" id="l2" placeholder="地標 2">
-    <input type="text" id="l3" placeholder="地標 3">
-    <button onclick="startGame()">啟動觀測儀</button>
+  <div id="rules-display" class="rules-panel hidden">
+    <div class="rules-title">📜 觀測員生存手則</div>
+    <div class="rules-list">
+      ● 正常訊號中<strong>絕對不會</strong>出現以下行為：<br>
+      &nbsp;&nbsp;「閉著眼睛」、「回頭觀看」、「紅色的事物」、「老闆在笑」。<br>
+      ● 請檢視 6 組指令，將包含上述「污染狀態」的卡片移至右側隔離。
+    </div>
   </div>
 
-  <div id="loading" class="hidden">🌀 正在連線至觀測終端...</div>
+  <div id="step-1">
+    <p>請輸入要校準的三個地標：</p>
+    <div style="display: flex; gap: 10px;">
+      <input type="text" id="l1" placeholder="地標 1">
+      <input type="text" id="l2" placeholder="地標 2">
+      <input type="text" id="l3" placeholder="地標 3">
+    </div>
+    <button onclick="startGame()">啟動高階觀測儀</button>
+  </div>
+
+  <div id="loading" class="hidden">🌀 正在透過 API 連線至雲端終端...</div>
 
   <div id="step-2" class="hidden">
-    <div class="rules-panel">
-      <strong>📜 觀測手則：</strong> 隔離包含「閉眼、回頭、紅色、老闆笑」的卡片。
-    </div>
     <div class="game-container">
-      <div id="safe-zone" class="drop-zone"></div>
-      <div id="anomaly-zone" class="drop-zone" style="border-color: var(--accent);"></div>
+      <div>
+        <div class="zone-header">📡 原始訊號區</div>
+        <div id="safe-zone" class="drop-zone"></div>
+      </div>
+      <div>
+        <div class="zone-header">⚠️ 異常隔離區 (污染源)</div>
+        <div id="anomaly-zone" class="drop-zone"></div>
+      </div>
     </div>
-    <button onclick="submitReport()">提交報告</button>
+    <button onclick="submitReport()">提交隔離報告</button>
   </div>
 
   <div id="step-3" class="hidden">
-    <div id="result" style="font-size: 20px; text-align: center; padding: 20px;"></div>
-    <button onclick="showAnswers()" style="background:#3498db;">查看感染源清單</button>
+    <div id="result" style="font-size: 22px; padding: 30px; background: #000; border: 1px solid #444; border-radius: 8px; text-align: center; white-space: pre-line;"></div>
+    <button id="show-answer-btn" class="btn-info" onclick="revealAnswers()">👁️ 查看受感染卡片清單</button>
     <div id="answer-list" class="hidden answer-box"></div>
-    <button onclick="location.reload()" style="background:#444;">重新校準</button>
+    <button onclick="location.reload()" style="margin-top:20px; background:#444;">再次校準</button>
   </div>
 </div>
 
 <script>
-  // 🔗 ⚠️ 請替換成你部署好的 GAS 網址
+  // 🔗 ⚠️ 重要：請替換成你在 GAS 部署後的網址
   const GAS_URL = "https://script.google.com/macros/s/AKfycbzayFJr6SkKnlLyIE8sYh7bBliVBfDC-PzTf6tpQ04rPBsjrEOkvOx-L64tIynfUe6_/exec"; 
 
   let errorCards = [];
 
-  async function apiCall(data) {
+  // 通用 API 調用函數
+  async function callBackend(payload) {
     const response = await fetch(GAS_URL, {
       method: "POST",
-      body: JSON.stringify(data)
+      body: JSON.stringify(payload)
     });
-    const res = await response.json();
-    return res.data;
+    const result = await response.json();
+    return result.data;
   }
 
   async function startGame() {
     const l = [document.getElementById('l1').value, document.getElementById('l2').value, document.getElementById('l3').value];
-    if(l.some(x => !x)) return alert("請填寫完整");
+    if(l.some(x => !x)) return alert('請填寫所有地標');
 
     document.getElementById('step-1').classList.add('hidden');
     document.getElementById('loading').classList.remove('hidden');
 
-    const res = await apiCall({ mode: "generate", landmarks: l });
-    const rawItems = res.split('|').map(s => s.trim()).filter(s => s.length > 0);
-    
-    errorCards = rawItems.filter(s => s.includes("(ERROR)")).map(s => s.replace("(ERROR)", "").trim());
-    const displayItems = rawItems.map(s => s.replace("(ERROR)", "").trim()).sort(() => Math.random() - 0.5);
+    try {
+      const res = await callBackend({ action: "generate", landmarks: l });
+      const rawItems = res.split('|').map(s => s.trim()).filter(s => s.length > 0);
+      
+      errorCards = rawItems.filter(s => s.includes("(ERROR)")).map(s => s.replace("(ERROR)", "").trim());
+      const displayItems = rawItems.map(s => s.replace("(ERROR)", "").trim()).sort(() => Math.random() - 0.5);
 
-    renderCards(displayItems);
-    document.getElementById('loading').classList.add('hidden');
-    document.getElementById('step-2').classList.remove('hidden');
+      setupCards(displayItems);
+      document.getElementById('loading').classList.add('hidden');
+      document.getElementById('rules-display').classList.remove('hidden');
+      document.getElementById('step-2').classList.remove('hidden');
+    } catch (e) {
+      alert("連線失敗，請檢查 GAS 網址與 API Key 設定。");
+      location.reload();
+    }
   }
 
-  function renderCards(items) {
-    const zone = document.getElementById('safe-zone');
+  function setupCards(items) {
+    const safeZone = document.getElementById('safe-zone');
+    safeZone.innerHTML = '';
     items.forEach(text => {
       const el = document.createElement('div');
       el.className = 'drag-item';
       el.draggable = true;
       el.innerText = text;
-      el.onsignals = e => e.preventDefault();
       el.addEventListener('dragstart', () => el.classList.add('dragging'));
       el.addEventListener('dragend', () => el.classList.remove('dragging'));
-      zone.appendChild(el);
+      safeZone.appendChild(el);
     });
 
     document.querySelectorAll('.drop-zone').forEach(zone => {
@@ -110,20 +141,26 @@
 
   async function submitReport() {
     const chosen = [...document.getElementById('anomaly-zone').querySelectorAll('.drag-item')].map(i => i.innerText).join(' ; ');
+    
     document.getElementById('step-2').classList.add('hidden');
     document.getElementById('loading').classList.remove('hidden');
 
-    const result = await apiCall({ mode: "verify", playerChoices: chosen, correctAnswers: errorCards.join('|') });
-    
+    const result = await callBackend({ 
+      action: "verify", 
+      playerChoices: chosen, 
+      correctAnswers: errorCards.join('|') 
+    });
+
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('step-3').classList.remove('hidden');
     document.getElementById('result').innerText = result;
   }
 
-  function showAnswers() {
+  function revealAnswers() {
     const list = document.getElementById('answer-list');
     list.classList.remove('hidden');
-    list.innerHTML = "<strong>感染源：</strong><br>" + errorCards.join("<br>");
+    list.innerHTML = "<strong>🛑 真正的污染源：</strong><br>" + (errorCards.length > 0 ? errorCards.map(c => "• " + c).join("<br>") : "無感染源。");
+    document.getElementById('show-answer-btn').classList.add('hidden');
   }
 </script>
 </body>
