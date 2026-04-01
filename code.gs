@@ -1,45 +1,48 @@
+/**
+ * 導航修復作戰：後端核心
+ * 2026 數位教育實驗計畫
+ */
+
 function doGet() {
-  return HtmlService.createHtmlOutputFromFile('index')
-      .setTitle('導航修復作戰：親子共戰版')
+  return HtmlService.createTemplateFromFile('index')
+      .evaluate()
+      .setTitle('🛡️ 導航修復作戰')
       .addMetaTag('viewport', 'width=device-width, initial-scale=1')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-function runMission(action, data) {
-  const SCRIPT_PROP = PropertiesService.getScriptProperties();
-  const API_KEY = SCRIPT_PROP.getProperty('GEMINI_API_KEY');
-  const MODEL_NAME = "gemini-2.5-flash"; 
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
+// 串接 Gemini API 的核心函式
+function processAIRequest(landmarks, mode) {
+  const apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!apiKey) return "錯誤：尚未設定 API Key";
 
-  let prompt = "";
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  
+  // 建立 Prompt 提示詞
+  const prompt = `
+    你是一位「混亂 AI」。請根據以下三個真實地標：${landmarks.join('、')}，
+    以及冒險模式：${mode}，生成一段大約 100 字的「故障導航指令」。
+    要求：
+    1. 邏輯必須崩壞、荒謬。
+    2. 必須包含這三個地標，但要根據模式進行「變形」（例如古代模式中，電線桿變成了長槍）。
+    3. 結尾要有一個危險或奇怪的行動指令（例如：請跳入早餐店的油鍋）。
+  `;
 
-  if (action === "GENERATE_QUEST") {
-    // 將三個欄位的地標組合起來
-    const locString = data.locations.join('、');
-    prompt = `你是一個正在干擾現實世界的混亂AI。請根據家長提供的地標：[${locString}]，
-    並切換至[${data.adventureMode}]模式，生成一段約120字的「故障導航指令」。
-    規則：必須包含這三個地標，且內容要有2個明顯邏輯錯誤。語氣要符合模式（外星/古代/寫實）。
-    最後加上：「修復師，你有辦法恢復正常嗎？」請直接回傳故事內容。`;
-  } else {
-    prompt = `你是導航修復指揮官。請針對學生的修復成果進行評鑑。
-    原始故障：[${data.original}]
-    學生修復：[${data.studentFix}]
-    請給予達成率(%)、指揮官點評與獎勵代碼。使用純文字與符號排版。`;
-  }
+  const payload = {
+    "contents": [{ "parts": [{ "text": prompt }] }]
+  };
 
-  const payload = { contents: [{ parts: [{ text: prompt }] }] };
   const options = {
-    method: "post",
-    contentType: "application/json",
-    payload: JSON.stringify(payload),
-    muteHttpExceptions: true
+    "method": "post",
+    "contentType": "application/json",
+    "payload": JSON.stringify(payload)
   };
 
   try {
-    const response = UrlFetchApp.fetch(API_URL, options);
-    const json = JSON.parse(response.getContentText());
-    return json.candidates[0].content.parts[0].text;
+    const response = UrlFetchApp.fetch(url, options);
+    const data = JSON.parse(response.getContentText());
+    return data.candidates[0].content.parts[0].text;
   } catch (e) {
-    return "📡 訊號中斷，請重新嘗試。";
+    return "通訊失敗：" + e.toString();
   }
 }
