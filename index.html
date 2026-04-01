@@ -3,84 +3,94 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🛡️ 異常觀測中心</title>
+  <title>🛡️ 異常觀測修復中心</title>
   <style>
-    :root { --bg: #111; --text: #eee; --accent: #e74c3c; --card: #1e1e1e; }
-    body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 15px; margin: 0; }
-    .card { background: var(--card); padding: 20px; border-radius: 12px; width: 100%; max-width: 800px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-    h1 { font-size: 22px; text-align: center; border-bottom: 1px solid #333; padding-bottom: 15px; }
+    :root { --bg: #121212; --text: #e0e0e0; --accent: #ff4d4d; --card-bg: #1e1e1e; }
+    body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
+    .card { background: var(--card-bg); padding: 25px; border-radius: 12px; width: 95%; max-width: 900px; border: 1px solid #333; }
+    h1 { color: #fff; text-align: center; font-size: 24px; margin-bottom: 20px; letter-spacing: 2px; }
     
-    .rules { background: #000; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 15px; line-height: 1.6; color: #bbb; border: 1px solid #444; }
-    .rules b { color: var(--accent); }
+    /* 指定保留的規則樣式 */
+    .rules-panel { background: #000; padding: 20px; border: 1px solid var(--accent); border-radius: 8px; margin-bottom: 25px; }
+    .rules-title { color: var(--accent); font-weight: bold; margin-bottom: 12px; font-size: 18px; }
+    .rules-list { color: #ccc; font-size: 15px; line-height: 1.8; }
+    .critical-warn { color: #f1c40f; font-weight: bold; }
 
-    .game-box { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-    .header { font-size: 14px; color: #777; text-align: center; margin-bottom: 8px; }
-    .drop-zone { background: #151515; border: 2px dashed #333; border-radius: 10px; min-height: 400px; padding: 10px; transition: 0.2s; }
-    #anomaly-zone { border-color: #444; }
+    .game-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .zone-header { font-size: 14px; margin-bottom: 10px; color: #888; text-align: center; font-weight: bold; }
+    .drop-zone { background: rgba(255,255,255,0.03); border: 2px dashed #444; border-radius: 10px; min-height: 400px; padding: 15px; }
+    #anomaly-zone { border-color: #555; background: rgba(255, 77, 77, 0.02); }
     
-    .drag-item { background: #2c2c2c; border: 1px solid #444; border-radius: 6px; padding: 15px; margin-bottom: 10px; font-size: 16px; cursor: grab; line-height: 1.4; }
-    .dragging { opacity: 0.3; background: #333; }
+    .drag-item { background: #2c2c2c; border: 1px solid #444; border-radius: 8px; padding: 16px; margin-bottom: 12px; font-size: 16px; cursor: grab; line-height: 1.5; color: #eee; }
+    .dragging { opacity: 0.2; transform: scale(0.98); }
     
-    input, button { width: 100%; padding: 12px; margin: 5px 0; background: #000; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
-    button { background: var(--accent); border: none; font-weight: bold; cursor: pointer; margin-top: 10px; }
-    .btn-blue { background: #2980b9; }
+    input, button { width: 100%; padding: 14px; margin: 8px 0; background: #000; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+    button { background: var(--accent); border: none; font-weight: bold; cursor: pointer; transition: 0.2s; }
+    button:hover { filter: brightness(1.2); }
     .hidden { display: none; }
-    .result-text { font-size: 18px; text-align: center; padding: 20px; white-space: pre-line; }
+    .btn-info { background: #3498db; }
+    .answer-box { margin-top: 15px; padding: 15px; background: #111; border-radius: 8px; font-size: 14px; color: #999; }
     
-    @media (max-width: 600px) { .game-box { grid-template-columns: 1fr; } }
+    @media (max-width: 650px) { .game-container { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
 
 <div class="card">
-  <h1>🛡️ 異常觀測中心</h1>
+  <h1>🛡️ 異常觀測修復中心</h1>
 
-  <div id="rules-box" class="rules hidden">
-    <b>[任務說明]</b><br>
-    抓出含有「<b>閉眼、回頭、紅色、老闆笑</b>」的怪事卡片，並拖移到右邊隔離區。
+  <div id="rules-display" class="rules-panel hidden">
+    <div class="rules-title">📜 觀測員生存手則</div>
+    <div class="rules-list">
+      1. 在正常的導航訊息中 <span class="critical-warn">絕對不會</span> 出現以下關鍵字或行為：<br>
+      &nbsp;&nbsp;&nbsp; ❌ <strong>閉著眼睛</strong>、❌ <strong>回頭看</strong>、❌ <strong>紅色的東西</strong>、❌ <strong>老闆正在笑</strong>。<br>
+      2. 請檢查 6 張卡片，把包含上面「異常行為」的卡片拖到右邊 <span style="color:var(--accent)">隔離區</span>。
+    </div>
   </div>
 
   <div id="step-1">
-    <p>請輸入三個地點：</p>
-    <div style="display: flex; gap: 8px;">
-      <input type="text" id="l1" placeholder="例如：大門口">
-      <input type="text" id="l2" placeholder="例如：飲水機">
-      <input type="text" id="l3" placeholder="例如：合作社">
+    <p>請輸入本區觀測到的三個地標：</p>
+    <div style="display: flex; gap: 10px;">
+      <input type="text" id="l1" placeholder="地點 1">
+      <input type="text" id="l2" placeholder="地點 2">
+      <input type="text" id="l3" placeholder="地點 3">
     </div>
-    <button onclick="startGame()">開始掃描</button>
+    <button onclick="startGame()">同步時空訊號</button>
   </div>
 
-  <div id="loading" class="hidden" style="text-align: center; padding: 20px;">🌀 正在攔截不明訊號...</div>
+  <div id="loading" class="hidden" style="text-align: center; padding: 20px;">🌀 正在過濾雜訊，請稍候...</div>
 
   <div id="step-2" class="hidden">
-    <div class="game-box">
+    <div class="game-container">
       <div>
-        <div class="header">📡 正常訊號</div>
+        <div class="zone-header">📡 正常訊號區</div>
         <div id="safe-zone" class="drop-zone"></div>
       </div>
       <div>
-        <div class="header">⚠️ 隔離區 (污染)</div>
+        <div class="zone-header">⚠️ 隔離區 (污染狀態)</div>
         <div id="anomaly-zone" class="drop-zone"></div>
       </div>
     </div>
-    <button onclick="submit()">提交隔離報告</button>
+    <button onclick="submitReport()">提交報告</button>
   </div>
 
   <div id="step-3" class="hidden">
-    <div id="result" class="result-text"></div>
-    <button id="ans-btn" class="btn-blue" onclick="showAns()">👁️ 查看污染源</button>
-    <div id="ans-list" class="hidden" style="padding:15px; background:#111; border-radius:8px; font-size:14px; color:#999; margin-top:10px;"></div>
-    <button onclick="location.reload()" style="background:#444;">再次校準</button>
+    <div id="result" style="font-size: 20px; padding: 25px; text-align: center; white-space: pre-line;"></div>
+    <button id="show-answer-btn" class="btn-info" onclick="revealAnswers()">👁️ 查看污染清單</button>
+    <div id="answer-list" class="hidden answer-box"></div>
+    <button onclick="location.reload()" style="background:#444; margin-top: 15px;">再次校準</button>
   </div>
 </div>
 
 <script>
+  // 🔗 ⚠️ 重要：請在此替換為你的 GAS 網址 (/exec)
   const GAS_URL = "https://script.google.com/macros/s/AKfycbzayFJr6SkKnlLyIE8sYh7bBliVBfDC-PzTf6tpQ04rPBsjrEOkvOx-L64tIynfUe6_/exec"; 
+
   let errorCards = [];
 
   async function startGame() {
     const l = [document.getElementById('l1').value, document.getElementById('l2').value, document.getElementById('l3').value];
-    if(l.some(x => !x)) return alert('地點要填完整喔！');
+    if(l.some(x => !x)) return alert('地標尚未填寫完整。');
 
     document.getElementById('step-1').classList.add('hidden');
     document.getElementById('loading').classList.remove('hidden');
@@ -88,30 +98,32 @@
     try {
       const response = await fetch(GAS_URL, { method: "POST", body: JSON.stringify({ action: "generate", landmarks: l }) });
       const res = await response.json();
-      const data = res.data;
-
-      const rawItems = data.split('|').map(s => s.trim()).filter(s => s.length > 0);
+      
+      const rawItems = res.data.split('|').map(s => s.trim()).filter(s => s.length > 0);
       errorCards = rawItems.filter(s => s.includes("(ERROR)")).map(s => s.replace("(ERROR)", "").trim());
       const displayItems = rawItems.map(s => s.replace("(ERROR)", "").trim()).sort(() => Math.random() - 0.5);
 
-      renderCards(displayItems);
+      setupCards(displayItems);
       document.getElementById('loading').classList.add('hidden');
-      document.getElementById('rules-box').classList.remove('hidden');
+      document.getElementById('rules-display').classList.remove('hidden');
       document.getElementById('step-2').classList.remove('hidden');
-    } catch(e) { alert('訊號連線失敗！'); location.reload(); }
+    } catch (e) {
+      alert("觀測儀連線故障！");
+      location.reload();
+    }
   }
 
-  function renderCards(items) {
-    const safe = document.getElementById('safe-zone');
-    safe.innerHTML = '';
-    items.forEach(txt => {
+  function setupCards(items) {
+    const safeZone = document.getElementById('safe-zone');
+    safeZone.innerHTML = '';
+    items.forEach(text => {
       const el = document.createElement('div');
       el.className = 'drag-item';
       el.draggable = true;
-      el.innerText = txt;
+      el.innerText = text;
       el.ondragstart = () => el.classList.add('dragging');
       el.ondragend = () => el.classList.remove('dragging');
-      safe.appendChild(el);
+      safeZone.appendChild(el);
     });
 
     document.querySelectorAll('.drop-zone').forEach(zone => {
@@ -123,7 +135,7 @@
     });
   }
 
-  async function submit() {
+  async function submitReport() {
     const chosen = [...document.getElementById('anomaly-zone').querySelectorAll('.drag-item')].map(i => i.innerText).join(' ; ');
     document.getElementById('step-2').classList.add('hidden');
     document.getElementById('loading').classList.remove('hidden');
@@ -136,11 +148,11 @@
     document.getElementById('result').innerText = res.data;
   }
 
-  function showAns() {
-    const list = document.getElementById('ans-list');
+  function revealAnswers() {
+    const list = document.getElementById('answer-list');
     list.classList.remove('hidden');
-    list.innerHTML = "<b>正確的污染源：</b><br>" + errorCards.join("<br>");
-    document.getElementById('ans-btn').classList.add('hidden');
+    list.innerHTML = "<strong>🛑 檢測出的異常：</strong><br>" + errorCards.join("<br>");
+    document.getElementById('show-answer-btn').classList.add('hidden');
   }
 </script>
 </body>
