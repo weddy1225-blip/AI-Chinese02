@@ -5,38 +5,22 @@
   <style>
     :root { --bg: #0d0d0d; --text: #d1d1d1; --accent: #ff3e3e; --card-bg: #1a1a1a; }
     body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; }
-    .card { background: var(--card-bg); padding: 30px; border-radius: 12px; width: 95%; max-width: 1100px; border: 1px solid #333; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
-    
-    h1 { color: var(--accent); letter-spacing: 5px; text-align: center; border-bottom: 1px solid #444; padding-bottom: 20px; margin-bottom: 30px; }
-
-    /* 規則區 */
-    .rules-panel { background: #000; padding: 20px; border: 1px solid var(--accent); border-radius: 8px; margin-bottom: 30px; }
-    .rules-title { color: var(--accent); font-weight: bold; margin-bottom: 10px; font-size: 18px; text-transform: uppercase; }
-    .rules-list { color: #aaa; font-size: 16px; line-height: 1.8; }
-
-    /* 遊戲佈局 */
-    .game-container { display: grid; grid-template-columns: 1fr 1fr; gap: 35px; }
-    .zone-header { font-size: 16px; margin-bottom: 15px; color: #888; text-align: center; font-weight: bold; }
-    .drop-zone { background: rgba(255,255,255,0.02); border: 2px dashed #444; border-radius: 12px; min-height: 520px; padding: 20px; transition: 0.3s; }
-    
+    .card { background: var(--card-bg); padding: 30px; border-radius: 12px; width: 95%; max-width: 1000px; border: 1px solid #333; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
+    h1 { color: var(--accent); letter-spacing: 4px; text-align: center; border-bottom: 1px solid #444; padding-bottom: 15px; }
+    .rules-panel { background: #000; padding: 20px; border: 1px solid var(--accent); border-radius: 8px; margin-bottom: 25px; }
+    .rules-title { color: var(--accent); font-weight: bold; margin-bottom: 10px; font-size: 18px; }
+    .rules-list { color: #aaa; font-size: 16px; line-height: 1.6; }
+    .game-container { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+    .zone-header { font-size: 16px; margin-bottom: 10px; color: #888; text-align: center; font-weight: bold; }
+    .drop-zone { background: rgba(255,255,255,0.02); border: 2px dashed #444; border-radius: 10px; min-height: 500px; padding: 20px; }
     #anomaly-zone { border-color: var(--accent); background: rgba(255, 77, 77, 0.03); }
-    
-    /* 卡片樣式 */
-    .drag-item { 
-      background: #2a2a2a; border: 1px solid #444; border-radius: 8px; padding: 20px; margin-bottom: 15px;
-      font-size: 18px; cursor: grab; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); line-height: 1.5;
-    }
-    .drag-item:active { cursor: grabbing; }
-    .dragging { opacity: 0.1; transform: scale(0.95); }
-
-    /* 表單元件 */
-    input, select, button { width: 100%; padding: 15px; margin: 10px 0; background: #111; color: #fff; border: 1px solid #333; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
-    button { background: var(--accent); border: none; font-weight: bold; cursor: pointer; font-size: 18px; transition: 0.3s; }
-    button:hover { filter: brightness(1.2); }
-    .btn-info { background: #3498db; margin-top: 15px; }
-    
+    .drag-item { background: #2a2a2a; border: 1px solid #444; border-radius: 6px; padding: 20px; margin-bottom: 15px; font-size: 18px; cursor: grab; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); line-height: 1.4; }
+    .dragging { opacity: 0.1; }
+    input, button { width: 100%; padding: 14px; margin: 8px 0; background: #111; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
+    button { background: var(--accent); border: none; font-weight: bold; cursor: pointer; font-size: 18px; margin-top: 15px; }
+    .btn-info { background: #3498db; }
     .hidden { display: none; }
-    .answer-box { text-align:left; margin-top:20px; padding:20px; background:#222; border-left:4px solid #3498db; color: #fff; line-height: 1.8; border-radius: 0 8px 8px 0; }
+    .answer-box { text-align:left; margin-top:15px; padding:15px; background:#222; border-left:4px solid #3498db; color: #fff; line-height: 1.8; }
   </style>
 </head>
 <body>
@@ -47,26 +31,20 @@
   <div id="rules-display" class="rules-panel hidden">
     <div class="rules-title">📜 觀測員生存手則</div>
     <div class="rules-list">
-      ● 正常訊號中<strong>絕不會</strong>出現以下狀態：<br>
+      ● 正常訊號中<strong>絕對不會</strong>出現以下行為：<br>
       &nbsp;&nbsp;「閉著眼睛」、「回頭觀看」、「紅色的事物」、「老闆在笑」。<br>
-      ● 請檢視 6 組情境卡片，將包含上述「污染狀態」的卡片移至右側隔離區。
+      ● 請檢視 6 組指令，將包含上述「污染狀態」的卡片移至右側隔離。
     </div>
   </div>
 
   <div id="step-1">
-    <p>請輸入目標坐標地標：</p>
-    <div style="display: flex; gap: 15px;">
-      <input type="text" id="l1" placeholder="地標 A">
-      <input type="text" id="l2" placeholder="地標 B">
-      <input type="text" id="l3" placeholder="地標 C">
+    <p>請輸入要校準的三個地標：</p>
+    <div style="display: flex; gap: 10px;">
+      <input type="text" id="l1" placeholder="地標 1">
+      <input type="text" id="l2" placeholder="地標 2">
+      <input type="text" id="l3" placeholder="地標 3">
     </div>
-    <select id="mode">
-      <option value="深夜街道">🌌 深夜街道</option>
-      <option value="廢棄醫院">🏥 廢棄醫院</option>
-      <option value="深夜學校">🏫 深夜學校</option>
-      <option value="荒野大霧">🌫️ 荒野大霧</option>
-    </select>
-    <button onclick="start()">啟動情境觀測儀</button>
+    <button onclick="start()">啟動高階觀測儀</button>
   </div>
 
   <div id="loading" class="hidden">🌀 正在過濾時空雜訊...</div>
@@ -74,11 +52,11 @@
   <div id="step-2" class="hidden">
     <div class="game-container">
       <div>
-        <div class="zone-header">📡 原始觀測訊號</div>
+        <div class="zone-header">📡 原始訊號區</div>
         <div id="safe-zone" class="drop-zone"></div>
       </div>
       <div>
-        <div class="zone-header">⚠️ 異常隔離區 (僅放污染源)</div>
+        <div class="zone-header">⚠️ 異常隔離區 (污染源)</div>
         <div id="anomaly-zone" class="drop-zone"></div>
       </div>
     </div>
@@ -86,43 +64,37 @@
   </div>
 
   <div id="step-3" class="hidden">
-    <div id="result" style="font-size: 22px; padding: 35px; background: #000; border: 1px solid #444; border-radius: 8px; text-align: center; white-space: pre-line;"></div>
+    <div id="result" style="font-size: 22px; padding: 30px; background: #000; border: 1px solid #444; border-radius: 8px; text-align: center; white-space: pre-line;"></div>
     <button id="show-answer-btn" class="btn-info" onclick="revealAnswers()">👁️ 查看受感染卡片清單</button>
     <div id="answer-list" class="hidden answer-box"></div>
-    <button onclick="location.reload()" style="margin-top:25px; background:#444;">再次執行任務</button>
+    <button onclick="location.reload()" style="margin-top:20px; background:#444;">再次校準</button>
   </div>
 </div>
 
 <script>
-  let errorCards = []; // 儲存正確答案
+  let errorCards = [];
 
   function start() {
     const l = [document.getElementById('l1').value, document.getElementById('l2').value, document.getElementById('l3').value];
-    if(l.some(x => !x)) return alert('請填寫完整地標資料');
-    
+    if(l.some(x => !x)) return alert('請填寫所有地標');
     document.getElementById('step-1').classList.add('hidden');
     document.getElementById('loading').classList.remove('hidden');
 
     google.script.run.withSuccessHandler(res => {
       const rawItems = res.split('|').map(s => s.trim()).filter(s => s.length > 0);
-      
-      // 提取標記並清理文字
       errorCards = rawItems.filter(s => s.includes("(ERROR)")).map(s => s.replace("(ERROR)", "").trim());
       const displayItems = rawItems.map(s => s.replace("(ERROR)", "").trim());
-
       setup(displayItems);
       document.getElementById('loading').classList.add('hidden');
       document.getElementById('rules-display').classList.remove('hidden');
       document.getElementById('step-2').classList.remove('hidden');
-    }).processAIRequest(l, document.getElementById('mode').value);
+    }).processAIRequest(l);
   }
 
   function setup(items) {
     const safeZone = document.getElementById('safe-zone');
     safeZone.innerHTML = '';
-    // 隨機打亂卡片顯示順序
     items.sort(() => Math.random() - 0.5);
-    
     items.forEach(text => {
       const el = document.createElement('div');
       el.className = 'drag-item';
@@ -132,8 +104,6 @@
       el.addEventListener('dragend', () => el.classList.remove('dragging'));
       safeZone.appendChild(el);
     });
-
-    // 拖曳邏輯
     const zones = document.querySelectorAll('.drop-zone');
     zones.forEach(zone => {
       zone.addEventListener('dragover', e => {
@@ -146,17 +116,10 @@
   }
 
   function submit() {
-    // 取得玩家隔離的卡片
-    const playerAnomaly = [...document.getElementById('anomaly-zone').querySelectorAll('.drag-item')]
-                            .map(i => i.innerText).join(' ; ');
-    
-    // 正確答案轉為字串
+    const playerAnomaly = [...document.getElementById('anomaly-zone').querySelectorAll('.drag-item')].map(i => i.innerText).join(' ; ');
     const correctStr = errorCards.join('|');
-
     document.getElementById('step-2').classList.add('hidden');
     document.getElementById('loading').classList.remove('hidden');
-
-    // 調用精準判定函數
     google.script.run.withSuccessHandler(res => {
       document.getElementById('loading').classList.add('hidden');
       document.getElementById('step-3').classList.remove('hidden');
@@ -167,8 +130,7 @@
   function revealAnswers() {
     const list = document.getElementById('answer-list');
     list.classList.remove('hidden');
-    list.innerHTML = "<strong>🛑 真正的污染源（異常行為）：</strong><br>" + 
-                     (errorCards.length > 0 ? errorCards.map(c => "• " + c).join("<br>") : "本次任務訊號極其純淨。");
+    list.innerHTML = "<strong>🛑 真正的污染源：</strong><br>" + (errorCards.length > 0 ? errorCards.map(c => "• " + c).join("<br>") : "本次訊號純淨。");
     document.getElementById('show-answer-btn').classList.add('hidden');
   }
 </script>
