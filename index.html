@@ -15,10 +15,11 @@
     .zone-header { font-size: 16px; margin-bottom: 10px; color: #888; text-align: center; font-weight: bold; }
     .drop-zone { background: rgba(255,255,255,0.02); border: 2px dashed #444; border-radius: 10px; min-height: 500px; padding: 20px; }
     #anomaly-zone { border-color: var(--accent); background: rgba(255, 77, 77, 0.03); }
-    .drag-item { background: #2a2a2a; border: 1px solid #444; border-radius: 6px; padding: 20px; margin-bottom: 15px; font-size: 18px; cursor: grab; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); line-height: 1.4; }
-    .dragging { opacity: 0.1; }
+    .drag-item { background: #2a2a2a; border: 1px solid #444; border-radius: 6px; padding: 20px; margin-bottom: 15px; font-size: 18px; cursor: grab; transition: 0.2s; line-height: 1.4; user-select: none; }
+    .dragging { opacity: 0.2; transform: scale(0.95); }
     input, button { width: 100%; padding: 14px; margin: 8px 0; background: #111; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
-    button { background: var(--accent); border: none; font-weight: bold; cursor: pointer; font-size: 18px; margin-top: 15px; }
+    button { background: var(--accent); border: none; font-weight: bold; cursor: pointer; transition: 0.3s; }
+    button:hover { filter: brightness(1.2); }
     .hidden { display: none; }
     .btn-info { background: #3498db; }
     .answer-box { text-align:left; margin-top:15px; padding:15px; background:#222; border-left:4px solid #3498db; color: #fff; line-height: 1.8; }
@@ -48,7 +49,7 @@
     <button onclick="startGame()">啟動高階觀測儀</button>
   </div>
 
-  <div id="loading" class="hidden">🌀 正在透過 API 連線至雲端終端...</div>
+  <div id="loading" class="hidden">🌀 正在透過過濾器攔截異常訊號...</div>
 
   <div id="step-2" class="hidden">
     <div class="game-container">
@@ -73,7 +74,7 @@
 </div>
 
 <script>
-  // 🔗 ⚠️ 重要：替換為你最新的 GAS 部署網址
+  // 🔗 ⚠️ 重要：請確保替換為最新的 GAS /exec 網址
   const GAS_URL = "https://script.google.com/macros/s/AKfycbzayFJr6SkKnlLyIE8sYh7bBliVBfDC-PzTf6tpQ04rPBsjrEOkvOx-L64tIynfUe6_/exec"; 
 
   let errorCards = [];
@@ -87,8 +88,8 @@
       const result = await response.json();
       return result.data;
     } catch (e) {
-      console.error("API Error:", e);
-      return null;
+      console.error("連線錯誤:", e);
+      return "ERROR: 無法連線至伺服器";
     }
   }
 
@@ -101,9 +102,8 @@
 
     const res = await callBackend({ action: "generate", landmarks: l });
     
-    // 檢查回傳值是否有效
-    if (!res || typeof res !== 'string') {
-      alert("觀測儀連線失敗或 API 設定錯誤。請確認 GAS 網址與 API Key。");
+    if (res.startsWith("ERROR")) {
+      alert("觀測發生故障：" + res);
       location.reload();
       return;
     }
@@ -153,7 +153,7 @@
 
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('step-3').classList.remove('hidden');
-    document.getElementById('result').innerText = result || "系統判定異常";
+    document.getElementById('result').innerText = result;
   }
 
   function revealAnswers() {
