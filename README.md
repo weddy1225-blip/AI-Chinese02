@@ -14,7 +14,7 @@
 😊 詭異微笑：例如「老闆對你露出微笑」、「店員臉上掛著止不住的笑容」。
 
 ## 🚀 立即開始遊戲
-👉 ### [👉 點擊此處開始遊戲 👈](https://weddy1225-blip.github.io/AI-Chinese02/)
+ [👉 點擊此處開始遊戲 👈](https://weddy1225-blip.github.io/AI-Chinese02/)
 
 
 -------
