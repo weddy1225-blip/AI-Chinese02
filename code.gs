@@ -1,5 +1,5 @@
 /**
- * 🛡️ 異常觀測 API 服務端 (強化核心規則版)
+ * 🛡️ 異常觀測 API 服務端 (敘事融合強化版)
  */
 
 function doPost(e) {
@@ -26,16 +26,19 @@ function processAIRequest(landmarks) {
   const apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
   
-  // 核心規則強調：明確要求 AI 針對關鍵字生成
-  const prompt = `你是一個冷酷的規則怪談系統。
-  請針對地標：【${landmarks.join('、')}】生成 6 條簡短指令。
-  要求：
-  1. 每個地標固定 2 條。
-  2. 【關鍵字注入】：隨機選取 1 到 3 條指令注入「絕對禁止」的污染行為：
-     - 行為包含：閉著眼睛、回頭看、看見紅色的事物、老闆正在笑。
-  3. 句尾有污染行為的請加上 (ERROR)。
-  4. 輸出格式：每條指令用 | 隔開。
-  5. 禁令：嚴禁出現「不要、不可」等否定詞，必須是動作描述。不要輸出 Markdown 或任何標題。`;
+  // 🎭 敘事強化提示詞：強調地標必須是動作發生的「場景」
+  const prompt = `你是一個冷酷的規則怪談監控系統。
+  【任務】：針對地標：【${landmarks.join('、')}】生成 6 條具有強烈不安感的導航指令。
+  
+  【寫作要求】：
+  1. 融合深度：嚴禁使用「在地標，做某事」的格式。地標必須是環境的一部分。
+     - ❌ 錯誤範例：在全聯門口，看見老闆在笑。
+     - ✅ 正確範例：路過全聯那扇自動感應門時，若發現玻璃倒影中的老闆正對你僵硬地微笑，請加快腳步。
+  2. 數量：每個地標生成 2 條不同情境的指令，共 6 條。
+  3. 污染源：隨機選取 1 到 3 條指令注入「絕對禁止」的行為：
+     - 行為：閉著眼睛、回頭看、看見紅色的事物、老闆在笑。
+  4. 標記：包含污染行為的句尾加上 (ERROR)。
+  5. 格式：每條指令用 | 隔開，不准有標題或 Markdown。只給文字。`;
 
   const payload = { "contents": [{ "parts": [{ "text": prompt }] }] };
   const options = { "method": "post", "contentType": "application/json", "payload": JSON.stringify(payload), "muteHttpExceptions": true };
@@ -47,7 +50,7 @@ function processAIRequest(landmarks) {
     let text = json.candidates[0].content.parts[0].text;
     return text.replace(/```[a-z]*\n?/gi, '').replace(/```/g, '').trim();
   } else {
-    throw new Error("無法接收觀測訊號");
+    throw new Error("觀測儀無法讀取地標波動");
   }
 }
 
