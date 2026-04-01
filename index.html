@@ -3,109 +3,92 @@
 <head>
   <base target="_top">
   <style>
-    body { font-family: 'PingFang TC', sans-serif; background-color: #f4f7f6; padding: 20px; display: flex; justify-content: center; }
-    .card { background: white; width: 100%; max-width: 600px; padding: 30px; border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
-    h1 { color: #2c3e50; text-align: center; border-bottom: 3px solid #e67e22; padding-bottom: 10px; }
-    .section { display: none; }
-    .active { display: block; animation: slideIn 0.4s ease-out; }
-    @keyframes slideIn { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    
-    .label-title { font-weight: bold; color: #34495e; margin-top: 15px; display: block; }
-    .input-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-    input, select, textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 16px; }
-    input:focus { border-color: #e67e22; outline: none; }
-    
-    .btn-main { width: 100%; padding: 15px; background: #e67e22; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 25px; transition: 0.2s; }
-    .btn-main:hover { background: #d35400; }
-    
-    .story-display { background: #2c3e50; color: #ecf0f1; padding: 20px; border-radius: 12px; line-height: 1.8; margin-top: 20px; white-space: pre-wrap; border-left: 8px solid #e67e22; }
-    .report-display { background: #fff3e0; border: 2px dashed #e67e22; padding: 20px; margin-top: 20px; white-space: pre-wrap; font-family: monospace; }
-    .loading { text-align: center; color: #e67e22; margin-top: 15px; display: none; }
+    :root { --primary: #e67e22; --bg: #f5f6fa; }
+    body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); display: flex; justify-content: center; padding: 20px; }
+    .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+    h1 { text-align: center; color: #2c3e50; }
+    .input-group { margin-bottom: 15px; }
+    input, select { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+    button { width: 100%; padding: 15px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 18px; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+    button:hover { background: #d35400; transform: translateY(-2px); }
+    #loading { display: none; text-align: center; margin-top: 20px; color: #666; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+    .result-area { display: none; margin-top: 20px; border-top: 2px dashed #ddd; padding-top: 20px; }
+    textarea { width: 100%; height: 120px; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; }
   </style>
 </head>
 <body>
 
 <div class="card">
   <h1>🛡️ 導航修復作戰</h1>
-
-  <div id="step-parent" class="section active">
-    <p style="color:#7f8c8d; font-size: 14px;">👨‍👩‍👧 家長請輸入三個家附近的觀察地標：</p>
+  
+  <div id="setup-step">
+    <p>👨‍👩‍👧 家長請輸入觀察地標：</p>
+    <div class="input-group"><input type="text" id="l1" placeholder="地標 1 (如：門口電線桿)"></div>
+    <div class="input-group"><input type="text" id="l2" placeholder="地標 2 (如：早餐店)"></div>
+    <div class="input-group"><input type="text" id="l3" placeholder="地標 3 (如：變電箱)"></div>
     
-    <div class="input-group">
-      <input type="text" id="loc1" placeholder="地標一：例如 門口電線桿">
-      <input type="text" id="loc2" placeholder="地標二：例如 轉角早餐店">
-      <input type="text" id="loc3" placeholder="地標三：例如 隔壁紅色機車">
-    </div>
-    
-    <label class="label-title">選擇戰場模式：</label>
+    <p>選擇戰場模式：</p>
     <select id="mode">
-      <option value="外星入侵">🛸 外星入侵</option>
       <option value="古代穿越">⚔️ 古代穿越</option>
+      <option value="外星入侵">🛸 外星入侵</option>
       <option value="現代寫實">🏙️ 現代寫實</option>
     </select>
     
-    <button class="btn-main" onclick="startQuest()">啟動傳送門</button>
-    <div id="load-1" class="loading">🌀 正在扭曲現實空間...</div>
+    <button onclick="startQuest()">啟動傳送門</button>
   </div>
 
-  <div id="step-student" class="section">
-    <h3>🔧 修復師任務中</h3>
-    <div id="quest-text" class="story-display"></div>
-    <label class="label-title">請輸入修復後的正確導航：</label>
-    <textarea id="student-input" rows="6" placeholder="運用智慧將文字修復回現實..."></textarea>
-    <button class="btn-main" onclick="submitFix()">提交鑑定</button>
-    <div id="load-2" class="loading">📡 指揮部評定中...</div>
-  </div>
+  <div id="loading">🌀 正在扭曲現實空間...</div>
 
-  <div id="step-report" class="section">
-    <h3>📊 戰訊結案報告</h3>
-    <div id="report-text" class="report-display"></div>
-    <button class="btn-main" onclick="location.reload()" style="background:#7f8c8d;">開啟新任務</button>
+  <div id="repair-step" class="result-area">
+    <h3>⚠️ 偵測到故障指令：</h3>
+    <p id="broken-text" style="color: #c0392b; background: #fee; padding: 10px; border-radius: 5px;"></p>
+    <p>🛠️ <b>修復師，請更正為安全的導航：</b></p>
+    <textarea id="fixed-text" placeholder="在這裡重新撰寫正確的描述..."></textarea>
+    <button onclick="submitRepair()">提交修復成果</button>
   </div>
 </div>
 
 <script>
-  let currentOriginal = "";
-
-  function toggle(id) {
-    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
-  }
-
   function startQuest() {
-    const l1 = document.getElementById('loc1').value;
-    const l2 = document.getElementById('loc2').value;
-    const l3 = document.getElementById('loc3').value;
+    const l1 = document.getElementById('l1').value;
+    const l2 = document.getElementById('l2').value;
+    const l3 = document.getElementById('l3').value;
     const mode = document.getElementById('mode').value;
 
-    if (!l1 || !l2 || !l3) return alert("請填滿三個地標喔！");
+    if (!l1 || !l2 || !l3) { alert('請填寫所有地標！'); return; }
 
-    document.getElementById('load-1').style.display = 'block';
-    
-    google.script.run.withSuccessHandler(res => {
-      currentOriginal = res;
-      document.getElementById('quest-text').innerText = res;
-      document.getElementById('load-1').style.display = 'none';
-      toggle('step-student');
-    }).runMission("GENERATE_QUEST", { 
-      locations: [l1, l2, l3], 
-      adventureMode: mode 
-    });
+    document.getElementById('setup-step').style.display = 'none';
+    document.getElementById('loading').style.display = 'block';
+
+    // 關鍵修正：確保 google.script.run 存在
+    if (typeof google !== 'undefined') {
+      google.script.run
+        .withSuccessHandler(onAISuccess)
+        .withFailureHandler(onAIFail)
+        .processAIRequest([l1, l2, l3], mode);
+    } else {
+      alert('錯誤：找不到 Google Script 環境。請確保是透過部署網址開啟！');
+      document.getElementById('setup-step').style.display = 'block';
+      document.getElementById('loading').style.display = 'none';
+    }
   }
 
-  function submitFix() {
-    const fixText = document.getElementById('student-input').value;
-    if (!fixText) return alert("請輸入修復內容！");
+  function onAISuccess(response) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('repair-step').style.display = 'block';
+    document.getElementById('broken-text').innerText = response;
+  }
 
-    document.getElementById('load-2').style.display = 'block';
-    google.script.run.withSuccessHandler(res => {
-      document.getElementById('report-text').innerText = res;
-      document.getElementById('load-2').style.display = 'none';
-      toggle('step-report');
-    }).runMission("EVALUATE", { 
-      original: currentOriginal, 
-      studentFix: fixText 
-    });
+  function onAIFail(err) {
+    alert('AI 傳送失敗：' + err);
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('setup-step').style.display = 'block';
+  }
+
+  function submitRepair() {
+    alert('✅ 修復完成！請交給 AI 指揮官（家長）進行最後評分。');
+    location.reload(); // 簡單重置
   }
 </script>
 
