@@ -8,24 +8,19 @@
     body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 20px; margin: 0; }
     .card { background: var(--card-bg); padding: 30px; border-radius: 12px; width: 95%; max-width: 1000px; border: 1px solid #333; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
     h1 { color: var(--accent); letter-spacing: 4px; text-align: center; border-bottom: 1px solid #444; padding-bottom: 15px; }
-    
-    /* 生存手則樣式 */
     .rules-panel { background: #000; padding: 20px; border: 1px solid var(--accent); border-radius: 8px; margin-bottom: 25px; }
     .rules-title { color: var(--accent); font-weight: bold; margin-bottom: 10px; font-size: 18px; }
     .rules-list { color: #aaa; font-size: 16px; line-height: 1.6; }
-
     .game-container { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
     .zone-header { font-size: 16px; margin-bottom: 10px; color: #888; text-align: center; font-weight: bold; }
     .drop-zone { background: rgba(255,255,255,0.02); border: 2px dashed #444; border-radius: 10px; min-height: 500px; padding: 20px; }
     #anomaly-zone { border-color: var(--accent); background: rgba(255, 77, 77, 0.03); }
-    
     .drag-item { background: #2a2a2a; border: 1px solid #444; border-radius: 6px; padding: 20px; margin-bottom: 15px; font-size: 18px; cursor: grab; transition: 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); line-height: 1.4; }
     .dragging { opacity: 0.1; }
-    
     input, button { width: 100%; padding: 14px; margin: 8px 0; background: #111; color: #fff; border: 1px solid #444; border-radius: 6px; font-size: 16px; box-sizing: border-box; }
     button { background: var(--accent); border: none; font-weight: bold; cursor: pointer; font-size: 18px; margin-top: 15px; }
-    .btn-info { background: #3498db; }
     .hidden { display: none; }
+    .btn-info { background: #3498db; }
     .answer-box { text-align:left; margin-top:15px; padding:15px; background:#222; border-left:4px solid #3498db; color: #fff; line-height: 1.8; }
   </style>
 </head>
@@ -39,7 +34,7 @@
     <div class="rules-list">
       ● 正常訊號中<strong>絕對不會</strong>出現以下行為：<br>
       &nbsp;&nbsp;「閉著眼睛」、「回頭觀看」、「紅色的事物」、「老闆在笑」。<br>
-      ● 請檢視 6 組指令，將包含上述「污染狀態」的卡片移至右側隔離。
+      ● 請檢視 6 組指令，將包含上述「污染狀態」的卡片移至右側隔離區。
     </div>
   </div>
 
@@ -78,19 +73,23 @@
 </div>
 
 <script>
-  // 🔗 ⚠️ 重要：請替換成你在 GAS 部署後的網址
+  // 🔗 ⚠️ 重要：替換為你最新的 GAS 部署網址
   const GAS_URL = "https://script.google.com/macros/s/AKfycbzayFJr6SkKnlLyIE8sYh7bBliVBfDC-PzTf6tpQ04rPBsjrEOkvOx-L64tIynfUe6_/exec"; 
 
   let errorCards = [];
 
-  // 通用 API 調用函數
   async function callBackend(payload) {
-    const response = await fetch(GAS_URL, {
-      method: "POST",
-      body: JSON.stringify(payload)
-    });
-    const result = await response.json();
-    return result.data;
+    try {
+      const response = await fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json();
+      return result.data;
+    } catch (e) {
+      console.error("API Error:", e);
+      return null;
+    }
   }
 
   async function startGame() {
@@ -100,21 +99,23 @@
     document.getElementById('step-1').classList.add('hidden');
     document.getElementById('loading').classList.remove('hidden');
 
-    try {
-      const res = await callBackend({ action: "generate", landmarks: l });
-      const rawItems = res.split('|').map(s => s.trim()).filter(s => s.length > 0);
-      
-      errorCards = rawItems.filter(s => s.includes("(ERROR)")).map(s => s.replace("(ERROR)", "").trim());
-      const displayItems = rawItems.map(s => s.replace("(ERROR)", "").trim()).sort(() => Math.random() - 0.5);
-
-      setupCards(displayItems);
-      document.getElementById('loading').classList.add('hidden');
-      document.getElementById('rules-display').classList.remove('hidden');
-      document.getElementById('step-2').classList.remove('hidden');
-    } catch (e) {
-      alert("連線失敗，請檢查 GAS 網址與 API Key 設定。");
+    const res = await callBackend({ action: "generate", landmarks: l });
+    
+    // 檢查回傳值是否有效
+    if (!res || typeof res !== 'string') {
+      alert("觀測儀連線失敗或 API 設定錯誤。請確認 GAS 網址與 API Key。");
       location.reload();
+      return;
     }
+
+    const rawItems = res.split('|').map(s => s.trim()).filter(s => s.length > 0);
+    errorCards = rawItems.filter(s => s.includes("(ERROR)")).map(s => s.replace("(ERROR)", "").trim());
+    const displayItems = rawItems.map(s => s.replace("(ERROR)", "").trim()).sort(() => Math.random() - 0.5);
+
+    setupCards(displayItems);
+    document.getElementById('loading').classList.add('hidden');
+    document.getElementById('rules-display').classList.remove('hidden');
+    document.getElementById('step-2').classList.remove('hidden');
   }
 
   function setupCards(items) {
@@ -134,14 +135,13 @@
       zone.addEventListener('dragover', e => {
         e.preventDefault();
         const dragging = document.querySelector('.dragging');
-        zone.appendChild(dragging);
+        if (dragging) zone.appendChild(dragging);
       });
     });
   }
 
   async function submitReport() {
     const chosen = [...document.getElementById('anomaly-zone').querySelectorAll('.drag-item')].map(i => i.innerText).join(' ; ');
-    
     document.getElementById('step-2').classList.add('hidden');
     document.getElementById('loading').classList.remove('hidden');
 
@@ -153,7 +153,7 @@
 
     document.getElementById('loading').classList.add('hidden');
     document.getElementById('step-3').classList.remove('hidden');
-    document.getElementById('result').innerText = result;
+    document.getElementById('result').innerText = result || "系統判定異常";
   }
 
   function revealAnswers() {
