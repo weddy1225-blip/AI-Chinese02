@@ -1,11 +1,11 @@
 /**
- * 🛡️ 異常觀測 API 服務端
+ * 🛡️ 異常觀測 API 服務端 (GitHub 通訊版)
  */
 
 function doPost(e) {
   try {
     const params = JSON.parse(e.postData.contents);
-    const mode = params.mode || "process"; // 判斷是要生成還是比對
+    const mode = params.action; // generate 或 verify
 
     let result;
     if (mode === "generate") {
@@ -33,7 +33,7 @@ function callGemini(prompt) {
 }
 
 function processAIRequest(landmarks) {
-  const prompt = `你是一個冷酷的規則怪談系統。地標：【${landmarks.join('、')}】。生成6條指令，每地標2條。將地標自然編織進句子。隨機1-3條含異常(閉眼、回頭、紅色、老闆笑)。句尾加(ERROR)。用|隔開。不要標題。`;
+  const prompt = `你是一個冷酷的規則怪談系統。針對地標：【${landmarks.join('、')}】生成 6 條簡短指令。要求：地標自然編織進句子。隨機 1-3 條含異常(閉眼、回頭、紅色、老闆笑)。句尾加 (ERROR)。用 | 隔開。不准出現「不要、不可」。不要標題。`;
   return callGemini(prompt);
 }
 
@@ -43,7 +43,7 @@ function verifyResults(playerChoices, correctAnswers) {
   const missing = correctArr.filter(item => !playerArr.includes(item));
   const wrong = playerArr.filter(item => !correctArr.includes(item));
 
-  if (missing.length === 0 && wrong.length === 0) return "【判定：完全修復】\n觀測極其精準。";
+  if (missing.length === 0 && wrong.length === 0) return "【判定：完全修復】\n觀測極其精準，雜訊已清除。";
   if (missing.length > 0) return `【判定：修復失敗】\n漏掉 ${missing.length} 個污染源。`;
-  return "【判定：過度隔離】\n移除正常訊號。";
+  return "【判定：過度隔離】\n你移除了正常訊號，導致現實崩潰。";
 }
