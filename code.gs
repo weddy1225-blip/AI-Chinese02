@@ -25,7 +25,7 @@ function doPost(e) {
 
 function processAIRequest(landmarks) {
   const apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
   
   const prompt = `你是一個冷酷的監控系統。
   【任務】：針對地標：【${landmarks.join('、')}】生成 6 條給國小四年級生的短指令。
